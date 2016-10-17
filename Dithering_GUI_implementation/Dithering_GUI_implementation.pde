@@ -93,7 +93,7 @@ float mfactor = 255.0f / 50; //okay as is 255.0 / 5
 int coloram = 24; //IMPORTANT Amount of colors you want in your result
 int palsw = 1; //paletteswitch, 0 is random, 1 is random+black, 2 is 3bit and anything else is b&w monochrome
 int loops = 2; //amount of loops for randomcolor.
-String image = "best girl.jpg"; //path to image
+String image = "start.jpg"; //path to image
 float endscale = 2; //scaling of image before processing, can be done without artefacting when using dithering
 int s = 1; // steps, best left at 1
 int msize = 8; //2,3,4,8 also defines matrix!, anything other than 2,3,4 and 8 results in msize = 4 
@@ -125,6 +125,7 @@ public void setup() {
   surface.setResizable(true);
   surface.setSize(src.width, src.height);
   noLoop();
+  surface.setVisible(false);
 }
 
 
