@@ -371,6 +371,8 @@ public class Hardcode implements ActionListener {
 
     surface.setResizable(true);
     surface.setSize(src.width, src.height);
+    
+    
     if ((e.getActionCommand().equals("Random Colors") || e.getActionCommand().equals("Random Colors + Black"))) {
       panel6.removeAll();
       panel6.setLayout( new GridLayout(1, 2));
@@ -410,6 +412,16 @@ public class Hardcode implements ActionListener {
       panel6.add(tscales);
       panel6.revalidate();
       panel6.repaint();
+      
+      panel3.removeAll();
+      panel3.add(tmsize);
+      panel3.add(msizel);
+      panel3.add(tloops);
+      panel3.add(loopl);
+      panel3.add(tcoloram);
+      panel3.add(coloraml);
+      panel3.revalidate();
+      panel3.repaint();
     }
 
     if ((e.getActionCommand().equals("Advanced Options") && adv.isSelected())) {
