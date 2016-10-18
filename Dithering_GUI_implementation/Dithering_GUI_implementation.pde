@@ -105,11 +105,11 @@ float scalar = 4; //now working correctly, non aliased scaling, 3 results in pic
 File[] selectedFile;
 int imam;
 int scaleam = 6;
-
+int hsbSwitch = 0;
 //GUI_start
 
-JRadioButton impl1, impl2, impl3, impl4, pal1, pal2, pal3, pal4, pal5, pal6; //DONE
-JTextField tmratio, tmfactor, tcoloram, tloops, tscalar, tsteps, tendscale, tmsize, towncol;
+JRadioButton impl1, impl2, impl3, impl4, pal1, pal2, pal3, pal4, pal5, pal6, hc, sc, bc; //DONE
+JTextField tmratio, tmfactor, tcoloram, tloops, tscalar, tsteps, tendscale, tmsize, towncol, tscales;
 JButton start, filebutton, owncolset;
 JCheckBox adv, linestep; //done
 
@@ -168,6 +168,10 @@ public class Hardcode implements ActionListener {
     pal5 = new JRadioButton("Own Colors");
     pal6 = new JRadioButton("Scaling of single color");
 
+    hc = new JRadioButton("Hue");
+    sc = new JRadioButton("Saturation");
+    bc = new JRadioButton("Brightness", true);
+
     owncolset = new JButton("Reset and update color amount");
     tmsize = new JTextField("2", 3);
     msizel = new JLabel("size of bayermatrix: 2, 3, 4 or 8");
@@ -175,6 +179,9 @@ public class Hardcode implements ActionListener {
     scalarl = new JLabel("Scale of resulting pixels");
     tendscale = new JTextField("1", 3);
     endscalel = new JLabel("resizes without loss of quality");
+    
+    tscales = new JTextField("6", 3);
+    
     //advanced options
     adv = new JCheckBox("Advanced Options", false);
     adv.addActionListener(this);
@@ -207,7 +214,7 @@ public class Hardcode implements ActionListener {
     subpanel2 = new JPanel();
     panel1.setLayout( new GridLayout(4, 1));
     panel2.setLayout( new GridLayout(4, 1));
-    panel3.setLayout( new GridLayout(3, 2));
+    panel3.setLayout( new GridLayout(5, 2));
     panel4.setLayout( new GridLayout(2, 2));
     panel5.setLayout( new GridLayout(5, 2));
     tcoloram.setSize(panel3.getWidth()/16, 20);
@@ -234,7 +241,7 @@ public class Hardcode implements ActionListener {
     pal3.setActionCommand("3bit");
     pal4.setActionCommand("Black and White");
     pal5.setActionCommand("Random Colors");
-    pal6.setActionCommand("Random Colors");
+    pal6.setActionCommand("Own Colors");
     adv.setActionCommand("Advanced Options");
     ButtonGroup modula = new ButtonGroup();
     modula.add(pal1);
@@ -243,6 +250,10 @@ public class Hardcode implements ActionListener {
     modula.add(pal4);
     modula.add(pal5);
     modula.add(pal6);
+    ButtonGroup moduless = new ButtonGroup();
+    moduless.add(hc);
+    moduless.add(bc);
+    moduless.add(sc);
     panel2.add(pal1);
     panel2.add(pal2);
     panel2.add(pal3);
@@ -259,6 +270,11 @@ public class Hardcode implements ActionListener {
     panel4.add(endscalel);
     panel4.add(tscalar);
     panel4.add(scalarl);
+
+    panel1.setBorder(BorderFactory.createLineBorder(Color.black));
+    panel2.setBorder(BorderFactory.createLineBorder(Color.black));
+    panel3.setBorder(BorderFactory.createLineBorder(Color.black));
+    panel7.setBorder(BorderFactory.createLineBorder(Color.black));
 
     panel5.add(adv);
     panel6.setLayout( new GridLayout(1, 2));
@@ -310,7 +326,6 @@ public class Hardcode implements ActionListener {
       Color newColor = JColorChooser.showDialog(null, "Choose a color", Color.RED);
       ownpal[coln] = newColor.getRGB();
       coln++;
-      println("beep");
       c[coln-1] = new JPanel();
       c[coln-1].setBackground(newColor);
       c[coln-1].setOpaque(true);
@@ -320,7 +335,6 @@ public class Hardcode implements ActionListener {
     }
 
     if (e.getActionCommand().equals("set colam")) {
-      println("beep");
       coloram = Integer.parseInt(towncol.getText());
       ownpal = new int[coloram];
       c = new JPanel[coloram];
@@ -358,6 +372,12 @@ public class Hardcode implements ActionListener {
     surface.setResizable(true);
     surface.setSize(src.width, src.height);
     if ((e.getActionCommand().equals("Random Colors") || e.getActionCommand().equals("Random Colors + Black"))) {
+      panel6.removeAll();
+      panel6.setLayout( new GridLayout(1, 2));
+      panel6.add(towncol);
+      panel6.add(owncolset);
+
+      panel3.removeAll();
       panel3.add(tmsize);
       panel3.add(msizel);
       panel3.add(tloops);
@@ -366,10 +386,30 @@ public class Hardcode implements ActionListener {
       panel3.add(coloraml);
       panel3.revalidate();
       panel3.repaint();
+      panel6.revalidate();
+      panel6.repaint();
     } else if (e.getActionCommand().equals("Black and White") || e.getActionCommand().equals("3bit")) {
+      panel6.removeAll();
+      panel6.setLayout( new GridLayout(1, 2));
+      panel6.add(towncol);
+      panel6.add(owncolset);
+
       panel3.removeAll();
       panel3.revalidate();
       panel3.repaint();
+      panel6.revalidate();
+      panel6.repaint();
+    } else if (e.getActionCommand().equals("Own Colors")) {
+      panel6.removeAll();
+      panel6.setLayout( new GridLayout(5, 2));
+      JLabel infohsb = new JLabel("Scaling based on brightness, saturation or hue?");
+      panel6.add(infohsb);
+      panel6.add(bc);
+      panel6.add(sc);
+      panel6.add(hc);
+      panel6.add(tscales);
+      panel6.revalidate();
+      panel6.repaint();
     }
 
     if ((e.getActionCommand().equals("Advanced Options") && adv.isSelected())) {
@@ -403,7 +443,7 @@ public class Hardcode implements ActionListener {
       scalar = Float.parseFloat(tscalar.getText());
       endscale = Float.parseFloat(tendscale.getText());
       msize = Integer.parseInt(tmsize.getText());
-
+      scaleam = Integer.parseInt(tscales.getText());
 
       if (pal1.isSelected()) {
         palsw = 0;
@@ -438,7 +478,16 @@ public class Hardcode implements ActionListener {
             collorcollector();
           }
 
-          if (pal6.isSelected()){
+
+          if (sc.isSelected()) {
+            hsbSwitch = 1;
+          } else if (hc.isSelected()) {
+            hsbSwitch = 0;
+          } else {
+            hsbSwitch = 2;
+          }
+
+          if (pal6.isSelected()) {
             scaleCalculator();
           }
 
@@ -455,6 +504,9 @@ public class Hardcode implements ActionListener {
             matrix = matrix4x4;
             msize = 4;
           }
+
+
+
           //println("beep2");
           // Scan image
           for (int x = 0; x < src.width; x+=s) {
@@ -633,17 +685,22 @@ public void collorcollector() { //extracts colors from original image at random,
   }
   //println("beepend");
 }
-public void scaleCalculator(){
-  float scalestep = 255/scaleam;
-  
+public void scaleCalculator() {
+
   scalepal = new int[scaleam];
-  
+
   colorMode(HSB, 255);
-  
-  for(int i = 0; i < scaleam; i++){
-    scalepal[i] = color(hue(ownpal[0]),saturation(ownpal[0]),255- 255*i/scaleam ); //brightness(ownpal[ownpal.length])
+
+  for (int i = 0; i < scaleam; i++) {
+    if (hsbSwitch == 2) {
+      scalepal[i] = color(hue(ownpal[0]), saturation(ownpal[0]), 255- 255*i/scaleam ); //brightness(ownpal[ownpal.length])
+    } else if (hsbSwitch == 1) {
+      scalepal[i] = color(hue(ownpal[0]), 255- 255*i/scaleam, brightness(ownpal[0]));
+    } else {
+      scalepal[i] = color(255- 255*i/scaleam, saturation(ownpal[0]), brightness(ownpal[0]));
+    }
   }
-  
+
   colorMode(RGB, 255);
 }
 
