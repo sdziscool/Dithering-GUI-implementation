@@ -100,12 +100,15 @@ int msize = 8; //2,3,4,8 also defines matrix!, anything other than 2,3,4 and 8 r
 int[] palette; //main palette, could later be implemented to be user defined
 int[] altpal; //array containg all random colors
 int[] ownpal;
+int[] scalepal;
 float scalar = 4; //now working correctly, non aliased scaling, 3 results in pics with "square" of 3 pixels wide(aka pixelart in high resolution)
 File[] selectedFile;
 int imam;
+int scaleam = 6;
+
 //GUI_start
 
-JRadioButton impl1, impl2, impl3, impl4, pal1, pal2, pal3, pal4, pal5; //DONE
+JRadioButton impl1, impl2, impl3, impl4, pal1, pal2, pal3, pal4, pal5, pal6; //DONE
 JTextField tmratio, tmfactor, tcoloram, tloops, tscalar, tsteps, tendscale, tmsize, towncol;
 JButton start, filebutton, owncolset;
 JCheckBox adv, linestep; //done
@@ -115,6 +118,8 @@ JPanel panel1, panel2, panel3, panel4, panel5, panel6, panel7, subpanel1, subpan
 JLabel loopl, coloraml, scalarl, stepsl, mratl, mfactl, endscalel, linestepl, msizel, owncoll;
 
 JPanel[] c;
+JPanel[] d;
+
 //GUI_end
 public void setup() {
   scale =  1/scalar;
@@ -161,7 +166,8 @@ public class Hardcode implements ActionListener {
     pal2 = new JRadioButton("Random Colors + Black");
     pal3 = new JRadioButton("3bit");
     pal5 = new JRadioButton("Own Colors");
-    
+    pal6 = new JRadioButton("Scaling of single color");
+
     owncolset = new JButton("Reset and update color amount");
     tmsize = new JTextField("2", 3);
     msizel = new JLabel("size of bayermatrix: 2, 3, 4 or 8");
@@ -222,11 +228,13 @@ public class Hardcode implements ActionListener {
     pal3.addActionListener(this);
     pal4.addActionListener(this);
     pal5.addActionListener(this);
+    pal6.addActionListener(this);
     pal1.setActionCommand("Random Colors");
     pal2.setActionCommand("Random Colors + Black");
     pal3.setActionCommand("3bit");
     pal4.setActionCommand("Black and White");
     pal5.setActionCommand("Random Colors");
+    pal6.setActionCommand("Random Colors");
     adv.setActionCommand("Advanced Options");
     ButtonGroup modula = new ButtonGroup();
     modula.add(pal1);
@@ -234,11 +242,13 @@ public class Hardcode implements ActionListener {
     modula.add(pal3);
     modula.add(pal4);
     modula.add(pal5);
+    modula.add(pal6);
     panel2.add(pal1);
     panel2.add(pal2);
     panel2.add(pal3);
     panel2.add(pal4);
     panel2.add(pal5);
+    panel2.add(pal6);
     panel3.add(tmsize);
     panel3.add(msizel);
     panel3.add(tloops);
@@ -274,7 +284,7 @@ public class Hardcode implements ActionListener {
     filebutton.addActionListener(this);
 
     //colorchoserGUI
-    JButton colorpick = new JButton("Pick Colors");
+    JButton colorpick = new JButton("Pick Color(s)");
     frame.add(colorpick);
     colorpick.addActionListener(this);
     //colorchooser end
@@ -295,7 +305,7 @@ public class Hardcode implements ActionListener {
 
   public void actionPerformed (ActionEvent e) {
 
-    if (e.getActionCommand().equals("Pick Colors")) {
+    if (e.getActionCommand().equals("Pick Color(s)")) {
       //JColorChooser picker = new JColorChooser(Color.BLACK);
       Color newColor = JColorChooser.showDialog(null, "Choose a color", Color.RED);
       ownpal[coln] = newColor.getRGB();
@@ -335,6 +345,7 @@ public class Hardcode implements ActionListener {
         scale =  1/scalar;
         imam = selectedFile.length - 1;
 
+        //image embedding
         src = loadImage(selectedFile[imam].getAbsolutePath());
         res = createImage(src.width, src.height, RGB);
         src.resize((int)(scale*src.width), (int)(scale*src.height)); //resize
@@ -356,12 +367,7 @@ public class Hardcode implements ActionListener {
       panel3.revalidate();
       panel3.repaint();
     } else if (e.getActionCommand().equals("Black and White") || e.getActionCommand().equals("3bit")) {
-      panel3.remove(tmsize);
-      panel3.remove(msizel);
-      panel3.remove(tloops);
-      panel3.remove(loopl);
-      panel3.remove(tcoloram);
-      panel3.remove(coloraml);
+      panel3.removeAll();
       panel3.revalidate();
       panel3.repaint();
     }
@@ -379,14 +385,8 @@ public class Hardcode implements ActionListener {
       panel5.revalidate();
       panel5.repaint();
     } else if ((e.getActionCommand().equals("Advanced Options") && !(adv.isSelected()))) {
-      panel5.remove(tsteps);
-      panel5.remove(stepsl);
-      panel5.remove(linestep);
-      panel5.remove(linestepl);
-      panel5.remove(tmratio);
-      panel5.remove(mratl);
-      panel5.remove(tmfactor);
-      panel5.remove(mfactl);
+      panel5.removeAll();
+      panel5.add(adv);
       panel5.repaint();
     }
 
@@ -411,10 +411,12 @@ public class Hardcode implements ActionListener {
         palsw = 1;
       } else if (pal3.isSelected()) {
         palsw = 2;
-      } else if (pal4.isSelected()){
+      } else if (pal4.isSelected()) {
         palsw = 3;
-      } else {
+      } else if (pal5.isSelected()) {
         palsw = 4;
+      } else {
+        palsw = 5;
       }
       //GUI
       while (imam >= 0) {
@@ -432,7 +434,14 @@ public class Hardcode implements ActionListener {
 
           // Define step
 
-          collorcollector();
+          if (pal1.isSelected() || pal2.isSelected()) {
+            collorcollector();
+          }
+
+          if (pal6.isSelected()){
+            scaleCalculator();
+          }
+
           //println("beep3");
           background(0, 0, 0);
 
@@ -520,7 +529,7 @@ public class Hardcode implements ActionListener {
           //println("beep");
 
           image(res, 0, 0);
-          String path = savePath(palsw + "_" + hour() + second() + millis()*100 + "_" + i + "result.png");
+          String path = savePath(selectedFile[imam].getAbsolutePath() + "_result\\" + palsw + "_" + hour() + second() + millis()*100 + "_" + i + "result.png");
           //println("beep");
           res.save(path);
 
@@ -563,8 +572,10 @@ public int findClosestColor(int in) {
     palette = pal3bit;
   } else if (palsw == 3) { 
     palette = monopal;
-  } else {
+  } else if (palsw == 4) {
     palette = ownpal;
+  } else {
+    palette = scalepal;
   }
 
 
@@ -622,6 +633,21 @@ public void collorcollector() { //extracts colors from original image at random,
   }
   //println("beepend");
 }
+public void scaleCalculator(){
+  float scalestep = 255/scaleam;
+  
+  scalepal = new int[scaleam];
+  
+  colorMode(HSB, 255);
+  
+  for(int i = 0; i < scaleam; i++){
+    scalepal[i] = color(hue(ownpal[0]),saturation(ownpal[0]),255- 255*i/scaleam ); //brightness(ownpal[ownpal.length])
+  }
+  
+  colorMode(RGB, 255);
+}
+
+
 public PImage qs(float scalor, PImage orig) { //QuanteSize, non smooth image resizeing
   surface.setSize((int)(scalor*(orig.width)), (int)(scalor*(orig.height)));
   PImage result = new PImage((int)(scalor*(orig.width)), (int)(scalor*(orig.height)));
