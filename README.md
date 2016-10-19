@@ -20,11 +20,17 @@ don't forget to select one or multiple files before pressing start!
 
 -bayermatrix selector for ordered dithering!
 
+##New Features
+
++made application standalone, either by making the ~~code export with processing~~ or recreating in normal Java
+
+[temp link] (http://sdziscool.polyphemus.feralhosting.com/Downloads/)
+
+with this the project will slowly move to a processing independant implementation for better performance.
+
 ##TODO
 
 -add more dithering algorithms
-
--make application standalone, either by making the code export with processing or recreating in normal Java
 
 -give more info and feedback to the user(file selected or not?, image preview)
 
