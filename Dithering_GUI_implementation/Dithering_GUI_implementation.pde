@@ -1,11 +1,11 @@
-import java.util.*; 
-import javax.swing.*; 
-import java.awt.*; 
-import java.awt.event.*; 
-import java.io.File; 
-import javax.swing.filechooser.FileFilter; 
+import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.util.Arrays;
 
 PImage src;
 PImage res;
@@ -14,76 +14,29 @@ float scale;
 
 // Bayer matrix 8x8
 int[][] matrix3x3 = {
-  {
-    1, 8, 4
-  }
-  , 
-  {
-    7, 6, 3
-  }
-  , 
-  {
-    5, 2, 9
-  }
+  {1, 8, 4}, 
+  {7, 6, 3}, 
+  {5, 2, 9}
 };
-int[][] matrix4x4 = {   
-  {
-    1, 9, 3, 11
-  }
-  , 
-  {
-    13, 5, 15, 7
-  }
-  , 
-  {
-    4, 12, 2, 10
-  }
-  , 
-  {
-    16, 8, 14, 6
-  }
+int[][] matrix4x4 = {
+  {1, 9, 3, 11}, 
+  {13, 5, 15, 7}, 
+  {4, 12, 2, 10}, 
+  {16, 8, 14, 6}
 };
 int[][] matrix2x2 = {
-  {
-    1, 3
-  }
-  , 
-  {
-    4, 2
-  }
+  {1, 3}, 
+  {4, 2}
 };
 int[][] matrix8x8 = {
-  {
-    1, 49, 13, 61, 4, 52, 16, 64
-  }
-  , 
-  {
-    33, 17, 45, 29, 36, 20, 48, 32
-  }
-  , 
-  {
-    9, 57, 5, 53, 12, 60, 8, 56
-  }
-  , 
-  {
-    41, 25, 37, 21, 44, 28, 40, 24
-  }
-  , 
-  {
-    3, 51, 15, 63, 2, 50, 14, 62
-  }
-  , 
-  {
-    35, 19, 47, 31, 34, 18, 46, 30
-  }
-  , 
-  {
-    11, 59, 7, 55, 10, 58, 6, 54
-  }
-  , 
-  {
-    43, 27, 39, 23, 42, 26, 38, 22
-  }
+  {1, 49, 13, 61, 4, 52, 16, 64}, 
+  {33, 17, 45, 29, 36, 20, 48, 32}, 
+  {9, 57, 5, 53, 12, 60, 8, 56}, 
+  {41, 25, 37, 21, 44, 28, 40, 24}, 
+  {3, 51, 15, 63, 2, 50, 14, 62}, 
+  {35, 19, 47, 31, 34, 18, 46, 30}, 
+  {11, 59, 7, 55, 10, 58, 6, 54}, 
+  {43, 27, 39, 23, 42, 26, 38, 22}
 };
 
 int coln;
@@ -96,7 +49,7 @@ int loops = 2; //amount of loops for randomcolor.
 String image = "start.jpg"; //path to image
 float endscale = 2; //scaling of image before processing, can be done without artefacting when using dithering
 int s = 1; // steps, best left at 1
-int msize = 8; //2,3,4,8 also defines matrix!, anything other than 2,3,4 and 8 results in msize = 4 
+int msize = 8; //2,3,4,8 also defines matrix!, anything other than 2,3,4 and 8 results in msize = 4
 int[] palette; //main palette, could later be implemented to be user defined
 int[] altpal; //array containg all random colors
 int[] ownpal;
@@ -113,6 +66,8 @@ JTextField tmratio, tmfactor, tcoloram, tloops, tscalar, tsteps, tendscale, tmsi
 JButton start, filebutton, owncolset;
 JCheckBox adv, linestep; //done
 
+JTextArea info = new JTextArea("Please select one or multiple files to dither!");
+JTextArea fileinfo = new JTextArea("no files selected yet");
 JFrame frame;
 JPanel panel1, panel2, panel3, panel4, panel5, panel6, panel7, subpanel1, subpanel2, subpanel3;
 JLabel loopl, coloraml, scalarl, stepsl, mratl, mfactl, endscalel, linestepl, msizel, owncoll;
@@ -122,24 +77,24 @@ JPanel[] d;
 
 //GUI_end
 public void setup() {
-  scale =  1/scalar;
+  scale = 1 / scalar;
   //println(scale);
-  src = loadImage(image);  
-  res = createImage(src.width, src.height, RGB);
-  src.resize((int)(scale*src.width), (int)(scale*src.height)); //resize
-  surface.setResizable(true);
-  surface.setSize(src.width, src.height);
+  //src = loadImage(image);
+  //res = createImage(src.width, src.height, RGB);
+  //src.resize((int) (scale * src.width), (int) (scale * src.height)); //resize
+  //surface.setResizable(true);
+  //surface.setSize(src.width, src.height);
   noLoop();
   surface.setVisible(false);
 }
 
 
 public void setunder() {
-  scale =  1/scalar;
+  scale = 1 / scalar;
   //println(scale);
-  src = loadImage(selectedFile[imam].getAbsolutePath());  
+  src = loadImage(selectedFile[imam].getAbsolutePath());
   res = createImage(src.width, src.height, RGB);
-  src.resize((int)(scale*src.width), (int)(scale*src.height)); //resize
+  src.resize((int) (scale * src.width), (int) (scale * src.height)); //resize
   surface.setResizable(true);
   surface.setSize(src.width, src.height);
 }
@@ -148,12 +103,13 @@ public void draw() {
 
   Hardcode beginning = new Hardcode();
   beginning.buildit();
-  image(src, 0, 0);
+  //image(src, 0, 0);
 }
 
 public class Hardcode implements ActionListener {
   public Hardcode() {
   }
+
   public void buildit() {
     start = new JButton("Start");
     impl4 = new JRadioButton("Atkinson");
@@ -166,7 +122,7 @@ public class Hardcode implements ActionListener {
     pal2 = new JRadioButton("Random Colors + Black");
     pal3 = new JRadioButton("3bit");
     pal5 = new JRadioButton("Own Colors");
-    pal6 = new JRadioButton("Scaling of single color");
+    pal6 = new JRadioButton("Scaling of one or multuple colors");
 
     hc = new JRadioButton("Hue");
     sc = new JRadioButton("Saturation");
@@ -179,9 +135,9 @@ public class Hardcode implements ActionListener {
     scalarl = new JLabel("Scale of resulting pixels");
     tendscale = new JTextField("1", 3);
     endscalel = new JLabel("resizes without loss of quality");
-    
+
     tscales = new JTextField("6", 3);
-    
+
     //advanced options
     adv = new JCheckBox("Advanced Options", false);
     adv.addActionListener(this);
@@ -212,13 +168,13 @@ public class Hardcode implements ActionListener {
     panel7 = new JPanel();
     subpanel1 = new JPanel();
     subpanel2 = new JPanel();
-    panel1.setLayout( new GridLayout(4, 1));
-    panel2.setLayout( new GridLayout(4, 1));
-    panel3.setLayout( new GridLayout(5, 2));
-    panel4.setLayout( new GridLayout(2, 2));
-    panel5.setLayout( new GridLayout(5, 2));
-    tcoloram.setSize(panel3.getWidth()/16, 20);
-    tloops.setSize(panel3.getWidth()/16, 20);
+    panel1.setLayout(new GridLayout(4, 1));
+    panel2.setLayout(new GridLayout(4, 1));
+    panel3.setLayout(new GridLayout(5, 2));
+    panel4.setLayout(new GridLayout(2, 2));
+    panel5.setLayout(new GridLayout(5, 2));
+    tcoloram.setSize(panel3.getWidth() / 16, 20);
+    tloops.setSize(panel3.getWidth() / 16, 20);
     ButtonGroup modulo = new ButtonGroup();
     modulo.add(impl1);
     modulo.add(impl2);
@@ -275,13 +231,15 @@ public class Hardcode implements ActionListener {
     panel2.setBorder(BorderFactory.createLineBorder(Color.black));
     panel3.setBorder(BorderFactory.createLineBorder(Color.black));
     panel7.setBorder(BorderFactory.createLineBorder(Color.black));
+    info.setBorder(BorderFactory.createLineBorder(Color.black));
+    fileinfo.setBorder(BorderFactory.createLineBorder(Color.black));
 
     panel5.add(adv);
-    panel6.setLayout( new GridLayout(1, 2));
-    panel7.setLayout( new GridLayout());
+    panel6.setLayout(new GridLayout(1, 2));
+    panel7.setLayout(new GridLayout());
     panel6.add(towncol);
     panel6.add(owncolset);
-    frame.setLayout(new GridLayout(5, 2));
+    frame.setLayout(new GridLayout(6, 2));
 
     frame.setSize(800, 800);
     frame.add(panel1);
@@ -293,7 +251,6 @@ public class Hardcode implements ActionListener {
     frame.add(panel6);
     frame.add(panel7);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.setVisible(true);
     start.addActionListener(this);
     //FileCHooser
     filebutton = new JButton("Select File(s)");
@@ -306,6 +263,20 @@ public class Hardcode implements ActionListener {
     //colorchooser end
     frame.add(filebutton);
 
+
+    //TEXTTHINGS
+    JScrollPane scro1 = new JScrollPane(fileinfo);
+    JScrollPane scro2 = new JScrollPane(info);
+
+    fileinfo.setLineWrap(true);
+    info.setLineWrap(true);
+    frame.add(scro2);
+    frame.add(scro1);
+    //info.append("\nwelcome"); //info.setText("The new text\n" + textArea.getText());
+
+
+    //ENDTEXTTHINGS
+
     coloram = Integer.parseInt(towncol.getText());
     ownpal = new int[coloram];
     c = new JPanel[coloram];
@@ -317,19 +288,20 @@ public class Hardcode implements ActionListener {
       e.printStackTrace();
     }
     //
+    frame.setVisible(true);
   }
 
-  public void actionPerformed (ActionEvent e) {
+  public void actionPerformed(ActionEvent e) {
 
     if (e.getActionCommand().equals("Pick Color(s)")) {
       //JColorChooser picker = new JColorChooser(Color.BLACK);
       Color newColor = JColorChooser.showDialog(null, "Choose a color", Color.RED);
       ownpal[coln] = newColor.getRGB();
       coln++;
-      c[coln-1] = new JPanel();
-      c[coln-1].setBackground(newColor);
-      c[coln-1].setOpaque(true);
-      panel7.add(c[coln-1]);
+      c[coln - 1] = new JPanel();
+      c[coln - 1].setBackground(newColor);
+      c[coln - 1].setOpaque(true);
+      panel7.add(c[coln - 1]);
       panel7.revalidate();
       panel7.repaint();
     }
@@ -342,6 +314,8 @@ public class Hardcode implements ActionListener {
       panel7.setBackground(Color.BLACK);
       panel7.removeAll();
       panel7.repaint();
+      info.setText(null);
+      info.append("#Colors reset\nyou can now select new colors\n");
     }
 
     if ((e.getActionCommand().equals("Select File(s)"))) {
@@ -356,13 +330,18 @@ public class Hardcode implements ActionListener {
       if (result == JFileChooser.APPROVE_OPTION) {
         selectedFile = fc.getSelectedFiles();
         //System.out.println("Selected file: " + selectedFile.getAbsolutePath());
-        scale =  1/scalar;
+        scale = 1 / scalar;
         imam = selectedFile.length - 1;
+        fileinfo.setText("");
+        for (int i = 0; i <= imam; i++) {
+          fileinfo.append( selectedFile[i].getName() + "\n");                                                             ///fileinfo.append( selectedFile[i].getName() + "\n"); info.setText("The new text\n" + textArea.getText());
+        }
+        fileinfo.append("- ### -   - ### -   - ### -\nfile amount: " + (imam + 1));
 
         //image embedding
         src = loadImage(selectedFile[imam].getAbsolutePath());
         res = createImage(src.width, src.height, RGB);
-        src.resize((int)(scale*src.width), (int)(scale*src.height)); //resize
+        src.resize((int) (scale * src.width), (int) (scale * src.height)); //resize
         surface.setResizable(true);
         surface.setSize(src.width, src.height);
       }
@@ -371,11 +350,9 @@ public class Hardcode implements ActionListener {
 
     surface.setResizable(true);
     surface.setSize(src.width, src.height);
-    
-    
     if ((e.getActionCommand().equals("Random Colors") || e.getActionCommand().equals("Random Colors + Black"))) {
       panel6.removeAll();
-      panel6.setLayout( new GridLayout(1, 2));
+      panel6.setLayout(new GridLayout(1, 2));
       panel6.add(towncol);
       panel6.add(owncolset);
 
@@ -392,7 +369,7 @@ public class Hardcode implements ActionListener {
       panel6.repaint();
     } else if (e.getActionCommand().equals("Black and White") || e.getActionCommand().equals("3bit")) {
       panel6.removeAll();
-      panel6.setLayout( new GridLayout(1, 2));
+      panel6.setLayout(new GridLayout(1, 2));
       panel6.add(towncol);
       panel6.add(owncolset);
 
@@ -403,25 +380,17 @@ public class Hardcode implements ActionListener {
       panel6.repaint();
     } else if (e.getActionCommand().equals("Own Colors")) {
       panel6.removeAll();
-      panel6.setLayout( new GridLayout(5, 2));
+      panel6.setLayout(new GridLayout(5, 2));
       JLabel infohsb = new JLabel("Scaling based on brightness, saturation or hue?");
       panel6.add(infohsb);
       panel6.add(bc);
       panel6.add(sc);
       panel6.add(hc);
       panel6.add(tscales);
+      panel6.add(towncol);
+      panel6.add(owncolset);
       panel6.revalidate();
       panel6.repaint();
-      
-      panel3.removeAll();
-      panel3.add(tmsize);
-      panel3.add(msizel);
-      panel3.add(tloops);
-      panel3.add(loopl);
-      panel3.add(tcoloram);
-      panel3.add(coloraml);
-      panel3.revalidate();
-      panel3.repaint();
     }
 
     if ((e.getActionCommand().equals("Advanced Options") && adv.isSelected())) {
@@ -447,7 +416,13 @@ public class Hardcode implements ActionListener {
 
       //GUI
       loops = Integer.parseInt(tloops.getText());
-      coloram = Integer.parseInt(tcoloram.getText());
+
+      if (pal6.isSelected()) {
+        coloram = Integer.parseInt(towncol.getText());
+      } else {
+        coloram = Integer.parseInt(tcoloram.getText()); //owncolam
+      }
+
       altpal = new int[coloram];
       s = Integer.parseInt(tsteps.getText());
       mratio = Float.parseFloat(tmratio.getText());
@@ -474,11 +449,7 @@ public class Hardcode implements ActionListener {
       while (imam >= 0) {
         setunder();
 
-        for (int i = 0; i<loops; i++) {
-
-
-
-
+        for (int i = 0; i < loops; i++) {
           // Init canvas
           background(0, 0, 0);
 
@@ -506,49 +477,48 @@ public class Hardcode implements ActionListener {
           //println("beep3");
           background(0, 0, 0);
 
-          if (msize == 2) { 
+          if (msize == 2) {
             matrix = matrix2x2;
-          } else if (msize == 3) { 
-            matrix =  matrix3x3;
-          } else if (msize == 8) { 
-            matrix =  matrix8x8;
+          } else if (msize == 3) {
+            matrix = matrix3x3;
+          } else if (msize == 8) {
+            matrix = matrix8x8;
           } else { //failsafe
             matrix = matrix4x4;
             msize = 4;
           }
 
 
-
           //println("beep2");
           // Scan image
-          for (int x = 0; x < src.width; x+=s) {
-            for (int y = 0; y < src.height; y+=s) {
+          for (int x = 0; x < src.width; x += s) {
+            for (int y = 0; y < src.height; y += s) {
 
               int oldpixel = src.get(x, y); // Calculate pixel
 
               int newpixel;
 
               if (impl1.isSelected()) { //impl.equals("ord") impl.equals("ran")
-                int value = color( (oldpixel >> 16 & 0xFF) + (mratio*matrix[x%msize][y%msize] * mfactor), (oldpixel >> 8 & 0xFF) + (mratio*matrix[x%msize][y%msize] * mfactor), (oldpixel & 0xFF) + + (mratio*matrix[x%msize][y%msize] * mfactor) );
-                newpixel = findClosestColor(value);      
+                int value = color((oldpixel >> 16 & 0xFF) + (mratio * matrix[x % msize][y % msize] * mfactor), (oldpixel >> 8 & 0xFF) + (mratio * matrix[x % msize][y % msize] * mfactor), (oldpixel & 0xFF) + +(mratio * matrix[x % msize][y % msize] * mfactor));
+                newpixel = findClosestColor(value);
                 src.set(x, y, newpixel);
               } else if (impl2.isSelected()) {
-                newpixel = findClosestColor( color ( red(oldpixel) + random(-64, 64), green(oldpixel) + random(-64, 64), blue(oldpixel) + random(-64, 64) ) );
+                newpixel = findClosestColor(color(red(oldpixel) + random(-64, 64), green(oldpixel) + random(-64, 64), blue(oldpixel) + random(-64, 64)));
                 src.set(x, y, newpixel);
               } else if (impl3.isSelected()) {
-                newpixel = findClosestColor(oldpixel);  
+                newpixel = findClosestColor(oldpixel);
                 int quant_error = color(red(oldpixel) - red(newpixel), green(oldpixel) - green(newpixel), blue(oldpixel) - blue(newpixel));
                 src.set(x, y, newpixel);
 
                 //Floys Steinberg
-                int s1 = src.get(x+s, y);
-                src.set(x+s, y, color( red(s1) + 7.0f/16 * red(quant_error), green(s1) + 7.0f/16 * green(quant_error), blue(s1) + 7.0f/16 * blue(quant_error) ));
-                int s2 = src.get(x-s, y+s);
-                src.set(x-s, y+s, color( red(s2) + 3.0f/16 * red(quant_error), green(s2) + 3.0f/16 * green(quant_error), blue(s2) + 3.0f/16 * blue(quant_error) ));
-                int s3 = src.get(x, y+s);
-                src.set(x, y+s, color( red(s3) + 5.0f/16 * red(quant_error), green(s3) + 5.0f/16 * green(quant_error), blue(s3) + 5.0f/16 * blue(quant_error) ));
-                int s4 = src.get(x+s, y+s);
-                src.set(x+s, y+s, color( red(s4) + 1.0f/16 * red(quant_error), green(s4) + 1.0f/16 * green(quant_error), blue(s4) + 1.0f/16 * blue(quant_error) ));
+                int s1 = src.get(x + s, y);
+                src.set(x + s, y, color(red(s1) + 7.0f / 16 * red(quant_error), green(s1) + 7.0f / 16 * green(quant_error), blue(s1) + 7.0f / 16 * blue(quant_error)));
+                int s2 = src.get(x - s, y + s);
+                src.set(x - s, y + s, color(red(s2) + 3.0f / 16 * red(quant_error), green(s2) + 3.0f / 16 * green(quant_error), blue(s2) + 3.0f / 16 * blue(quant_error)));
+                int s3 = src.get(x, y + s);
+                src.set(x, y + s, color(red(s3) + 5.0f / 16 * red(quant_error), green(s3) + 5.0f / 16 * green(quant_error), blue(s3) + 5.0f / 16 * blue(quant_error)));
+                int s4 = src.get(x + s, y + s);
+                src.set(x + s, y + s, color(red(s4) + 1.0f / 16 * red(quant_error), green(s4) + 1.0f / 16 * green(quant_error), blue(s4) + 1.0f / 16 * blue(quant_error)));
               } else { //if (impl.equals("atkin"))
 
                 newpixel = findClosestColor(oldpixel);
@@ -556,32 +526,29 @@ public class Hardcode implements ActionListener {
                 src.set(x, y, newpixel);
 
                 // Atkinson algorithm http://verlagmartinkoch.at/software/dither/index.html
-                int s1 = src.get(x+s, y);
-                src.set(x+s, y, color( red(s1) + 1.0f/8 * red(quant_error), green(s1) + 1.0f/8 * green(quant_error), blue(s1) + 1.0f/8 * blue(quant_error) ));      
-                int s2 = src.get(x-s, y+s);
-                src.set(x-s, y+s, color( red(s2) + 1.0f/8 * red(quant_error), green(s2) + 1.0f/8 * green(quant_error), blue(s2) + 1.0f/8 * blue(quant_error) ));      
-                int s3 = src.get(x, y+s);
-                src.set(x, y+s, color( red(s3) + 1.0f/8 * red(quant_error), green(s3) + 1.0f/8 * green(quant_error), blue(s3) + 1.0f/8 * blue(quant_error) ));      
-                int s4 = src.get(x+s, y+s);
-                src.set(x+s, y+s, color( red(s4) + 1.0f/8 * red(quant_error), green(s4) + 1.0f/8 * green(quant_error), blue(s4) + 1.0f/8 * blue(quant_error) ));      
-                int s5 = src.get(x+2*s, y);
-                src.set(x+2*s, y, color( red(s5) + 1.0f/8 * red(quant_error), green(s5) + 1.0f/8 * green(quant_error), blue(s5) + 1.0f/8 * blue(quant_error) ));      
-                int s6 = src.get(x, y+2*s);
-                src.set(x, y+2*s, color( red(s6) + 1.0f/8 * red(quant_error), green(s6) + 1.0f/8 * green(quant_error), blue(s6) + 1.0f/8 * blue(quant_error) ));
+                int s1 = src.get(x + s, y);
+                src.set(x + s, y, color(red(s1) + 1.0f / 8 * red(quant_error), green(s1) + 1.0f / 8 * green(quant_error), blue(s1) + 1.0f / 8 * blue(quant_error)));
+                int s2 = src.get(x - s, y + s);
+                src.set(x - s, y + s, color(red(s2) + 1.0f / 8 * red(quant_error), green(s2) + 1.0f / 8 * green(quant_error), blue(s2) + 1.0f / 8 * blue(quant_error)));
+                int s3 = src.get(x, y + s);
+                src.set(x, y + s, color(red(s3) + 1.0f / 8 * red(quant_error), green(s3) + 1.0f / 8 * green(quant_error), blue(s3) + 1.0f / 8 * blue(quant_error)));
+                int s4 = src.get(x + s, y + s);
+                src.set(x + s, y + s, color(red(s4) + 1.0f / 8 * red(quant_error), green(s4) + 1.0f / 8 * green(quant_error), blue(s4) + 1.0f / 8 * blue(quant_error)));
+                int s5 = src.get(x + 2 * s, y);
+                src.set(x + 2 * s, y, color(red(s5) + 1.0f / 8 * red(quant_error), green(s5) + 1.0f / 8 * green(quant_error), blue(s5) + 1.0f / 8 * blue(quant_error)));
+                int s6 = src.get(x, y + 2 * s);
+                src.set(x, y + 2 * s, color(red(s6) + 1.0f / 8 * red(quant_error), green(s6) + 1.0f / 8 * green(quant_error), blue(s6) + 1.0f / 8 * blue(quant_error)));
               }
 
               // Draw
-              stroke(newpixel);   
+              stroke(newpixel);
               point(x, y);
               if (linestep.isSelected()) {
                 //println("beep");
-                line(x, y, x+s, y+s);
+                line(x, y, x + s, y + s);
               }
             }
           }
-
-
-
 
 
           res = qs(scalar, src);
@@ -593,15 +560,15 @@ public class Hardcode implements ActionListener {
           //println("beep");
 
           image(res, 0, 0);
-          String path = savePath(selectedFile[imam].getAbsolutePath() + "_result\\" + palsw + "_" + hour() + second() + millis()*100 + "_" + i + "result.png");
-          //println("beep");
+          //String path = savePath(selectedFile[imam].getAbsolutePath() + "_result\\" + palsw + "_" + hour() + second() + millis() * 100 + "_" + i + "result.png");
+          String path = savePath("results\\" + selectedFile[imam].getName() + "_" + hour() + second() + millis() * 100 + "_" + i + "result.png");
           res.save(path);
 
           if (!(palsw == 0 || palsw == 1)) {
             break;
           }
           src = loadImage(selectedFile[imam].getAbsolutePath());
-          src.resize((int)(scale*src.width), (int)(scale*src.height)); //resize
+          src.resize((int) (scale * src.width), (int) (scale * src.height)); //resize
         }
         imam--;
         //frame.dispose();
@@ -610,6 +577,7 @@ public class Hardcode implements ActionListener {
     }
   }
 }
+
 // Find closest colors in palette
 public int findClosestColor(int in) {
 
@@ -634,7 +602,7 @@ public int findClosestColor(int in) {
     palette = altpal;
   } else if (palsw == 2) {
     palette = pal3bit;
-  } else if (palsw == 3) { 
+  } else if (palsw == 3) {
     palette = monopal;
   } else if (palsw == 4) {
     palette = ownpal;
@@ -643,13 +611,12 @@ public int findClosestColor(int in) {
   }
 
 
-
-  PVector[] vpalette = new PVector[palette.length];  
-  PVector vcolor = new PVector( (in >> 16 & 0xFF), (in >> 8 & 0xFF), (in & 0xFF));
+  PVector[] vpalette = new PVector[palette.length];
+  PVector vcolor = new PVector((in >> 16 & 0xFF), (in >> 8 & 0xFF), (in & 0xFF));
   int current = 0;
   float distance = vcolor.dist(new PVector(0, 0, 0));
 
-  for (int i=0; i<palette.length; i++) {
+  for (int i = 0; i < palette.length; i++) {
     int r = (palette[i] >> 16 & 0xFF);
     int g = (palette[i] >> 8 & 0xFF);
     int b = (palette[i] & 0xFF);
@@ -682,12 +649,12 @@ public void collorcollector() { //extracts colors from original image at random,
   for (int x = rx; x < src.width; x++) {
     for (int y = ry; y < src.height; y++) {
       //i < altpal.length
-      if ( !Arrays.asList(altpal).contains(color(src.get(x, y)))) {
+      if (!Arrays.asList(altpal).contains(color(src.get(x, y)))) {
         if (i == altpal.length) {
           break;
         }
         //println(x + " " + y);
-        altpal[i]=color(src.get(x, y));
+        altpal[i] = color(src.get(x, y));
         i++;
 
         x = PApplet.parseInt(random(src.width));
@@ -697,36 +664,46 @@ public void collorcollector() { //extracts colors from original image at random,
   }
   //println("beepend");
 }
+
 public void scaleCalculator() {
 
-  scalepal = new int[scaleam];
+  // orig impl // scalepal = new int[scaleam];
+
+  //new impl w/ multiple colors
+
+  scalepal = new int[scaleam*coloram];
+  int k = 0;
+
+  //end impl
 
   colorMode(HSB, 255);
+  for (int j = 0; j < coloram; j++) {
 
-  for (int i = 0; i < scaleam; i++) {
-    if (hsbSwitch == 2) {
-      scalepal[i] = color(hue(ownpal[0]), saturation(ownpal[0]), 255- 255*i/scaleam ); //brightness(ownpal[ownpal.length])
-    } else if (hsbSwitch == 1) {
-      scalepal[i] = color(hue(ownpal[0]), 255- 255*i/scaleam, brightness(ownpal[0]));
-    } else {
-      scalepal[i] = color(255- 255*i/scaleam, saturation(ownpal[0]), brightness(ownpal[0]));
+    for (int i = 0; i < scaleam; i++) {
+      if (hsbSwitch == 2) {
+        scalepal[k] = color(hue(ownpal[j]), saturation(ownpal[j]), 255 - 255 * i / scaleam); //brightness(ownpal[ownpal.length])
+      } else if (hsbSwitch == 1) {
+        scalepal[k] = color(hue(ownpal[j]), 255 - 255 * i / scaleam, brightness(ownpal[j]));
+      } else {
+        scalepal[k] = color(255 - 255 * i / scaleam, saturation(ownpal[j]), brightness(ownpal[j]));
+      }
+      k++;
     }
   }
-
   colorMode(RGB, 255);
 }
 
 
 public PImage qs(float scalor, PImage orig) { //QuanteSize, non smooth image resizeing
-  surface.setSize((int)(scalor*(orig.width)), (int)(scalor*(orig.height)));
-  PImage result = new PImage((int)(scalor*(orig.width)), (int)(scalor*(orig.height)));
+  surface.setSize((int) (scalor * (orig.width)), (int) (scalor * (orig.height)));
+  PImage result = new PImage((int) (scalor * (orig.width)), (int) (scalor * (orig.height)));
   for (int x = 0; x < orig.width; x++) {
     for (int y = 0; y < orig.height; y++) {
-      for (int a = 0; a<scalor; a++) {
-        for (int b = 0; b<scalor; b++) {
+      for (int a = 0; a < scalor; a++) {
+        for (int b = 0; b < scalor; b++) {
           //println(x+ " "+ y  +" " + a + " " + b );
 
-          result.set((int)(scalor*x+a), (int)(scalor*y+b), orig.get(x, y));
+          result.set((int) (scalor * x + a), (int) (scalor * y + b), orig.get(x, y));
         }
       }
     }
