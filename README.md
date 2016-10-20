@@ -1,7 +1,7 @@
 # Dithering-GUI-implementation
 A fully featured GUI for image dithering using processing
 
-Made with processing 3.0 in mind, may also work in Processing 2.0+.
+Made with processing 3.0 in mind, may also work in Processing 2.0+ with a few edits.
 
 Just open the .pde in processing, press run code and the GUI will load,
 don't forget to select one or multiple files before pressing start!
@@ -24,9 +24,7 @@ don't forget to select one or multiple files before pressing start!
 
 ##New Features
 
-+made application standalone, either by making the ~~code export with processing~~ or recreating in normal Java
-
-[temp link] (http://sdziscool.polyphemus.feralhosting.com/Downloads/)
++made standalone jar - [temp link] (http://sdziscool.polyphemus.feralhosting.com/Downloads/)
 
 with this the project will slowly move to a processing independant implementation for better performance.
 
@@ -34,7 +32,7 @@ with this the project will slowly move to a processing independant implementatio
       
 +the pde now also exports correctly so you can compile for yourself!
 
-+pde/jar is completely independant
++pde/jar is completely independant (no more use of start.jpg)
 
 ##TODO
 
