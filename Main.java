@@ -1,4 +1,4 @@
-package sdziscode.ditheringGUI;
+package sdziscode.dithering;
 
 import processing.core.PApplet;
 import processing.core.PImage;
@@ -12,7 +12,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Arrays;
-import javax.swing.text.DefaultCaret;
+import java.util.stream.IntStream;
+
 
 public class Main extends PApplet {
 
@@ -48,7 +49,6 @@ public class Main extends PApplet {
             {11, 59, 7, 55, 10, 58, 6, 54},
             {43, 27, 39, 23, 42, 26, 38, 22}
     };
-
     int coln;
     String impl = "ord"; //ord, atkin, floyd, ran
     float mratio = 10 / 18.5f; //okay as is 1.0 / 18.5
@@ -60,19 +60,24 @@ public class Main extends PApplet {
     float endscale = 2; //scaling of image before processing, can be done without artefacting when using dithering
     int s = 1; // steps, best left at 1
     int msize = 8; //2,3,4,8 also defines matrix!, anything other than 2,3,4 and 8 results in msize = 4
-    int[] palette; //main palette, could later be implemented to be user defined
-    int[] altpal; //array containg all random colors
-    int[] ownpal;
-    int[] scalepal;
+    Integer[] palette; //main palette, could later be implemented to be user defined
+    Integer[] altpal; //array containg all random colors
+    Integer[] ownpal;
+    Integer[] scalepal;
+    Integer[] dubpal;
     float scalar = 4; //now working correctly, non aliased scaling, 3 results in pics with "square" of 3 pixels wide(aka pixelart in high resolution)
     File[] selectedFile;
     int imam;
     int scaleam = 6;
     int hsbSwitch = 0;
+    int wij = 8;
+    int hoo = 8;
+
+
 //GUI_start
 
-    JRadioButton impl1, impl2, impl3, impl4, pal1, pal2, pal3, pal4, pal5, pal6, hc, sc, bc; //DONE
-    JTextField tmratio, tmfactor, tcoloram, tloops, tscalar, tsteps, tendscale, tmsize, towncol, tscales;
+    JRadioButton impl1, impl2, impl3, impl4, pal1, pal2, pal3, pal4, pal5, pal6, pal7, hc, sc, bc; //DONE
+    JTextField tmratio, tmfactor, tcoloram, tloops, tscalar, tsteps, tendscale, tmsize, towncol, tscales, twij, thoog;
     JButton start, filebutton, owncolset;
     JCheckBox adv, linestep; //done
 
@@ -80,7 +85,7 @@ public class Main extends PApplet {
     JTextArea fileinfo = new JTextArea("no files selected yet");
     JFrame frame;
     JPanel panel1, panel2, panel3, panel4, panel5, panel6, panel7, subpanel1, subpanel2, subpanel3;
-    JLabel loopl, coloraml, scalarl, stepsl, mratl, mfactl, endscalel, linestepl, msizel, owncoll;
+    JLabel loopl, coloraml, scalarl, stepsl, mratl, mfactl, endscalel, linestepl, msizel, wijl, hool;
 
     JPanel[] c;
     JPanel[] d;
@@ -88,12 +93,6 @@ public class Main extends PApplet {
     //GUI_end
     public void setup() {
         scale = 1 / scalar;
-        //println(scale);
-        //src = loadImage(image);
-        //res = createImage(src.width, src.height, RGB);
-        //src.resize((int) (scale * src.width), (int) (scale * src.height)); //resize
-        //surface.setResizable(true);
-        //surface.setSize(src.width, src.height);
         noLoop();
         surface.setVisible(false);
     }
@@ -133,6 +132,7 @@ public class Main extends PApplet {
             pal3 = new JRadioButton("3bit");
             pal5 = new JRadioButton("Own Colors");
             pal6 = new JRadioButton("Scaling of one or multuple colors");
+            pal7 = new JRadioButton("boxes");
 
             hc = new JRadioButton("Hue");
             sc = new JRadioButton("Saturation");
@@ -147,6 +147,10 @@ public class Main extends PApplet {
             endscalel = new JLabel("resizes without loss of quality");
 
             tscales = new JTextField("6", 3);
+            twij = new JTextField("20", 3);
+            thoog = new JTextField("20", 3);
+            wijl = new JLabel("width of boxes");
+            hool = new JLabel("height of boxes");
 
             //advanced options
             adv = new JCheckBox("Advanced Options", false);
@@ -178,6 +182,7 @@ public class Main extends PApplet {
             panel7 = new JPanel();
             subpanel1 = new JPanel();
             subpanel2 = new JPanel();
+            subpanel3 = new JPanel();
             panel1.setLayout(new GridLayout(4, 1));
             panel2.setLayout(new GridLayout(4, 1));
             panel3.setLayout(new GridLayout(5, 2));
@@ -202,12 +207,14 @@ public class Main extends PApplet {
             pal4.addActionListener(this);
             pal5.addActionListener(this);
             pal6.addActionListener(this);
+            pal7.addActionListener(this);
             pal1.setActionCommand("Random Colors");
             pal2.setActionCommand("Random Colors + Black");
             pal3.setActionCommand("3bit");
             pal4.setActionCommand("Black and White");
             pal5.setActionCommand("Random Colors");
             pal6.setActionCommand("Own Colors");
+            pal7.setActionCommand("magic");
             adv.setActionCommand("Advanced Options");
             ButtonGroup modula = new ButtonGroup();
             modula.add(pal1);
@@ -216,6 +223,7 @@ public class Main extends PApplet {
             modula.add(pal4);
             modula.add(pal5);
             modula.add(pal6);
+            modula.add(pal7);
             ButtonGroup moduless = new ButtonGroup();
             moduless.add(hc);
             moduless.add(bc);
@@ -226,6 +234,7 @@ public class Main extends PApplet {
             panel2.add(pal4);
             panel2.add(pal5);
             panel2.add(pal6);
+            panel2.add(pal7);
             panel3.add(tmsize);
             panel3.add(msizel);
             panel3.add(tloops);
@@ -236,6 +245,11 @@ public class Main extends PApplet {
             panel4.add(endscalel);
             panel4.add(tscalar);
             panel4.add(scalarl);
+
+            subpanel3.add(twij);
+            subpanel3.add(wijl);
+            subpanel3.add(thoog);
+            subpanel3.add(hool);
 
             panel1.setBorder(BorderFactory.createLineBorder(Color.black));
             panel2.setBorder(BorderFactory.createLineBorder(Color.black));
@@ -249,7 +263,7 @@ public class Main extends PApplet {
             panel7.setLayout(new GridLayout());
             panel6.add(towncol);
             panel6.add(owncolset);
-            frame.setLayout(new GridLayout(6, 2));
+            frame.setLayout(new GridLayout(7, 2));
 
             frame.setSize(800, 800);
             frame.add(panel1);
@@ -282,13 +296,14 @@ public class Main extends PApplet {
             info.setLineWrap(true);
             frame.add(scro2);
             frame.add(scro1);
+            frame.add(subpanel3);
             //info.append("\nwelcome"); //info.setText("The new text\n" + textArea.getText());
 
 
             //ENDTEXTTHINGS
 
             coloram = Integer.parseInt(towncol.getText());
-            ownpal = new int[coloram];
+            ownpal = new Integer[coloram];
             c = new JPanel[coloram];
 
             try {
@@ -317,7 +332,7 @@ public class Main extends PApplet {
 
             if (e.getActionCommand().equals("set colam")) {
                 coloram = Integer.parseInt(towncol.getText());
-                ownpal = new int[coloram];
+                ownpal = new Integer[coloram];
                 c = new JPanel[coloram];
                 coln = 0;
                 panel7.setBackground(Color.BLACK);
@@ -342,8 +357,8 @@ public class Main extends PApplet {
                     scale = 1 / scalar;
                     imam = selectedFile.length - 1;
                     fileinfo.setText("");
-                    for(int i = 0; i <= imam; i++){
-                        fileinfo.append( selectedFile[i].getName() + "\n");                                                             ///fileinfo.append( selectedFile[i].getName() + "\n"); info.setText("The new text\n" + textArea.getText());
+                    for (int i = 0; i <= imam; i++) {
+                        fileinfo.append(selectedFile[i].getName() + "\n");                                                             ///fileinfo.append( selectedFile[i].getName() + "\n"); info.setText("The new text\n" + textArea.getText());
                     }
                     fileinfo.append("- ### -   - ### -   - ### -\nfile amount: " + (imam + 1));
 
@@ -357,8 +372,8 @@ public class Main extends PApplet {
             }
 
 
-            surface.setResizable(true);
-            surface.setSize(src.width, src.height);
+            //surface.setResizable(true);
+            //surface.setSize(src.width, src.height);
             if ((e.getActionCommand().equals("Random Colors") || e.getActionCommand().equals("Random Colors + Black"))) {
                 panel6.removeAll();
                 panel6.setLayout(new GridLayout(1, 2));
@@ -426,13 +441,12 @@ public class Main extends PApplet {
                 //GUI
                 loops = Integer.parseInt(tloops.getText());
 
-                if(pal6.isSelected()) {
+                if (pal6.isSelected()) {
                     coloram = Integer.parseInt(towncol.getText());
                 } else {
                     coloram = Integer.parseInt(tcoloram.getText()); //owncolam
                 }
 
-                altpal = new int[coloram];
                 s = Integer.parseInt(tsteps.getText());
                 mratio = Float.parseFloat(tmratio.getText());
                 mfactor = Float.parseFloat(tmfactor.getText());
@@ -440,6 +454,10 @@ public class Main extends PApplet {
                 endscale = Float.parseFloat(tendscale.getText());
                 msize = Integer.parseInt(tmsize.getText());
                 scaleam = Integer.parseInt(tscales.getText());
+
+
+                wij = src.width;
+                hoo = src.height;
 
                 if (pal1.isSelected()) {
                     palsw = 0;
@@ -451,12 +469,17 @@ public class Main extends PApplet {
                     palsw = 3;
                 } else if (pal5.isSelected()) {
                     palsw = 4;
-                } else {
+                } else if (pal6.isSelected()) {
                     palsw = 5;
+                } else {
+                    palsw = 6;
+                    wij = (int)(Integer.parseInt(twij.getText())/scalar);
+                    hoo = (int)(Integer.parseInt(thoog.getText())/scalar);
                 }
                 //GUI
                 while (imam >= 0) {
                     setunder();
+
 
                     for (int i = 0; i < loops; i++) {
                         // Init canvas
@@ -465,9 +488,8 @@ public class Main extends PApplet {
                         image(src, 0, 0);
 
                         // Define step
-
                         if (pal1.isSelected() || pal2.isSelected()) {
-                            collorcollector();
+                            collorcollector(0, 0, coloram);
                         }
 
 
@@ -499,66 +521,85 @@ public class Main extends PApplet {
 
 
                         //println("beep2");
-                        // Scan image
-                        for (int x = 0; x < src.width; x += s) {
-                            for (int y = 0; y < src.height; y += s) {
+                        //newness
+                        for (int x3 = 0; x3 <= src.width / wij; x3++) {
+                            for (int y3 = 0; y3 <= src.height / hoo; y3++) {
+                                if (pal7.isSelected()) {
+                                    //int q = getAverageColor(src, x3 * wij, y3 * hoo);
+                                    //int z = extractColorFromImage(src, x3 * wij, y3 * hoo);
+                                    //colorMode(RGB);
+                                    collorcollector(x3 * wij, y3 * hoo, coloram);
 
-                                int oldpixel = src.get(x, y); // Calculate pixel
-
-                                int newpixel;
-
-                                if (impl1.isSelected()) { //impl.equals("ord") impl.equals("ran")
-                                    int value = color((oldpixel >> 16 & 0xFF) + (mratio * matrix[x % msize][y % msize] * mfactor), (oldpixel >> 8 & 0xFF) + (mratio * matrix[x % msize][y % msize] * mfactor), (oldpixel & 0xFF) + +(mratio * matrix[x % msize][y % msize] * mfactor));
-                                    newpixel = findClosestColor(value);
-                                    src.set(x, y, newpixel);
-                                } else if (impl2.isSelected()) {
-                                    newpixel = findClosestColor(color(red(oldpixel) + random(-64, 64), green(oldpixel) + random(-64, 64), blue(oldpixel) + random(-64, 64)));
-                                    src.set(x, y, newpixel);
-                                } else if (impl3.isSelected()) {
-                                    newpixel = findClosestColor(oldpixel);
-                                    int quant_error = color(red(oldpixel) - red(newpixel), green(oldpixel) - green(newpixel), blue(oldpixel) - blue(newpixel));
-                                    src.set(x, y, newpixel);
-
-                                    //Floys Steinberg
-                                    int s1 = src.get(x + s, y);
-                                    src.set(x + s, y, color(red(s1) + 7.0f / 16 * red(quant_error), green(s1) + 7.0f / 16 * green(quant_error), blue(s1) + 7.0f / 16 * blue(quant_error)));
-                                    int s2 = src.get(x - s, y + s);
-                                    src.set(x - s, y + s, color(red(s2) + 3.0f / 16 * red(quant_error), green(s2) + 3.0f / 16 * green(quant_error), blue(s2) + 3.0f / 16 * blue(quant_error)));
-                                    int s3 = src.get(x, y + s);
-                                    src.set(x, y + s, color(red(s3) + 5.0f / 16 * red(quant_error), green(s3) + 5.0f / 16 * green(quant_error), blue(s3) + 5.0f / 16 * blue(quant_error)));
-                                    int s4 = src.get(x + s, y + s);
-                                    src.set(x + s, y + s, color(red(s4) + 1.0f / 16 * red(quant_error), green(s4) + 1.0f / 16 * green(quant_error), blue(s4) + 1.0f / 16 * blue(quant_error)));
-                                } else { //if (impl.equals("atkin"))
-
-                                    newpixel = findClosestColor(oldpixel);
-                                    int quant_error = color(red(oldpixel) - red(newpixel), green(oldpixel) - green(newpixel), blue(oldpixel) - blue(newpixel));
-                                    src.set(x, y, newpixel);
-
-                                    // Atkinson algorithm http://verlagmartinkoch.at/software/dither/index.html
-                                    int s1 = src.get(x + s, y);
-                                    src.set(x + s, y, color(red(s1) + 1.0f / 8 * red(quant_error), green(s1) + 1.0f / 8 * green(quant_error), blue(s1) + 1.0f / 8 * blue(quant_error)));
-                                    int s2 = src.get(x - s, y + s);
-                                    src.set(x - s, y + s, color(red(s2) + 1.0f / 8 * red(quant_error), green(s2) + 1.0f / 8 * green(quant_error), blue(s2) + 1.0f / 8 * blue(quant_error)));
-                                    int s3 = src.get(x, y + s);
-                                    src.set(x, y + s, color(red(s3) + 1.0f / 8 * red(quant_error), green(s3) + 1.0f / 8 * green(quant_error), blue(s3) + 1.0f / 8 * blue(quant_error)));
-                                    int s4 = src.get(x + s, y + s);
-                                    src.set(x + s, y + s, color(red(s4) + 1.0f / 8 * red(quant_error), green(s4) + 1.0f / 8 * green(quant_error), blue(s4) + 1.0f / 8 * blue(quant_error)));
-                                    int s5 = src.get(x + 2 * s, y);
-                                    src.set(x + 2 * s, y, color(red(s5) + 1.0f / 8 * red(quant_error), green(s5) + 1.0f / 8 * green(quant_error), blue(s5) + 1.0f / 8 * blue(quant_error)));
-                                    int s6 = src.get(x, y + 2 * s);
-                                    src.set(x, y + 2 * s, color(red(s6) + 1.0f / 8 * red(quant_error), green(s6) + 1.0f / 8 * green(quant_error), blue(s6) + 1.0f / 8 * blue(quant_error)));
+                                    //dubpal = new int[2];
+                                    //dubpal = altpal;
                                 }
+                                //System.out.println(x3 + " " + y3 + "hello");
+                                for (int x = x3 * wij; x < x3 * wij + wij && x < src.width; x += s) {
+                                    for (int y = y3 * hoo; y < y3 * hoo + hoo && y < src.height; y += s) {
+                                        //ENDnewness
+                                        // Scan image
+                                        //for (int x = 0; x < src.width; x += s) {
+                                        //for (int y = 0; y < src.height; y += s) {
 
-                                // Draw
-                                stroke(newpixel);
-                                point(x, y);
-                                if (linestep.isSelected()) {
-                                    //println("beep");
-                                    line(x, y, x + s, y + s);
+
+                                        int oldpixel = src.get(x, y); // Calculate pixel
+
+                                        int newpixel;
+
+                                        if (impl1.isSelected()) { //impl.equals("ord") impl.equals("ran")
+                                            int value = color((oldpixel >> 16 & 0xFF) + (mratio * matrix[x % msize][y % msize] * mfactor), (oldpixel >> 8 & 0xFF) + (mratio * matrix[x % msize][y % msize] * mfactor), (oldpixel & 0xFF) + +(mratio * matrix[x % msize][y % msize] * mfactor));
+                                            newpixel = findClosestColor(value);
+                                            src.set(x, y, newpixel);
+                                        } else if (impl2.isSelected()) {
+                                            newpixel = findClosestColor(color(red(oldpixel) + random(-64, 64), green(oldpixel) + random(-64, 64), blue(oldpixel) + random(-64, 64)));
+                                            src.set(x, y, newpixel);
+                                        } else if (impl3.isSelected()) {
+                                            newpixel = findClosestColor(oldpixel);
+                                            int quant_error = color(red(oldpixel) - red(newpixel), green(oldpixel) - green(newpixel), blue(oldpixel) - blue(newpixel));
+                                            src.set(x, y, newpixel);
+
+                                            //Floys Steinberg
+                                            int s1 = src.get(x + s, y);
+                                            src.set(x + s, y, color(red(s1) + 7.0f / 16 * red(quant_error), green(s1) + 7.0f / 16 * green(quant_error), blue(s1) + 7.0f / 16 * blue(quant_error)));
+                                            int s2 = src.get(x - s, y + s);
+                                            src.set(x - s, y + s, color(red(s2) + 3.0f / 16 * red(quant_error), green(s2) + 3.0f / 16 * green(quant_error), blue(s2) + 3.0f / 16 * blue(quant_error)));
+                                            int s3 = src.get(x, y + s);
+                                            src.set(x, y + s, color(red(s3) + 5.0f / 16 * red(quant_error), green(s3) + 5.0f / 16 * green(quant_error), blue(s3) + 5.0f / 16 * blue(quant_error)));
+                                            int s4 = src.get(x + s, y + s);
+                                            src.set(x + s, y + s, color(red(s4) + 1.0f / 16 * red(quant_error), green(s4) + 1.0f / 16 * green(quant_error), blue(s4) + 1.0f / 16 * blue(quant_error)));
+                                        } else { //if (impl.equals("atkin"))
+
+                                            newpixel = findClosestColor(oldpixel);
+                                            int quant_error = color(red(oldpixel) - red(newpixel), green(oldpixel) - green(newpixel), blue(oldpixel) - blue(newpixel));
+                                            src.set(x, y, newpixel);
+
+                                            // Atkinson algorithm http://verlagmartinkoch.at/software/dither/index.html
+                                            int s1 = src.get(x + s, y);
+                                            src.set(x + s, y, color(red(s1) + 1.0f / 8 * red(quant_error), green(s1) + 1.0f / 8 * green(quant_error), blue(s1) + 1.0f / 8 * blue(quant_error)));
+                                            int s2 = src.get(x - s, y + s);
+                                            src.set(x - s, y + s, color(red(s2) + 1.0f / 8 * red(quant_error), green(s2) + 1.0f / 8 * green(quant_error), blue(s2) + 1.0f / 8 * blue(quant_error)));
+                                            int s3 = src.get(x, y + s);
+                                            src.set(x, y + s, color(red(s3) + 1.0f / 8 * red(quant_error), green(s3) + 1.0f / 8 * green(quant_error), blue(s3) + 1.0f / 8 * blue(quant_error)));
+                                            int s4 = src.get(x + s, y + s);
+                                            src.set(x + s, y + s, color(red(s4) + 1.0f / 8 * red(quant_error), green(s4) + 1.0f / 8 * green(quant_error), blue(s4) + 1.0f / 8 * blue(quant_error)));
+                                            int s5 = src.get(x + 2 * s, y);
+                                            src.set(x + 2 * s, y, color(red(s5) + 1.0f / 8 * red(quant_error), green(s5) + 1.0f / 8 * green(quant_error), blue(s5) + 1.0f / 8 * blue(quant_error)));
+                                            int s6 = src.get(x, y + 2 * s);
+                                            src.set(x, y + 2 * s, color(red(s6) + 1.0f / 8 * red(quant_error), green(s6) + 1.0f / 8 * green(quant_error), blue(s6) + 1.0f / 8 * blue(quant_error)));
+                                        }
+
+                                        // Draw
+                                        stroke(newpixel);
+                                        point(x, y);
+                                        if (linestep.isSelected()) {
+                                            //println("beep");
+                                            line(x, y, x + s, y + s);
+                                        }
+                                    }
                                 }
+                                palette = null;
                             }
                         }
-
 
                         res = qs(scalar, src);
                         //println("beep");
@@ -566,14 +607,12 @@ public class Main extends PApplet {
                             res = qs(endscale, res);
                         }
 
-                        //println("beep");
-
                         image(res, 0, 0);
                         //String path = savePath(selectedFile[imam].getAbsolutePath() + "_result\\" + palsw + "_" + hour() + second() + millis() * 100 + "_" + i + "result.png");
                         String path = savePath("results\\" + selectedFile[imam].getName() + "_" + hour() + second() + millis() * 100 + "_" + i + "result.png");
                         res.save(path);
 
-                        if (!(palsw == 0 || palsw == 1)) {
+                        if (!(palsw == 0 || palsw == 1 || palsw == 6)) {
                             break;
                         }
                         src = loadImage(selectedFile[imam].getAbsolutePath());
@@ -582,6 +621,8 @@ public class Main extends PApplet {
                     imam--;
                     //frame.dispose();
                     //draw();
+                    palette = null;
+                    clear();
                 }
             }
         }
@@ -591,7 +632,7 @@ public class Main extends PApplet {
     public int findClosestColor(int in) {
 
         //Palette colors
-        int[] pal3bit = { // 3bit color palette
+        Integer[] pal3bit = { // 3bit color palette
                 color(0),
                 color(255),
                 color(255, 0, 0),
@@ -603,7 +644,7 @@ public class Main extends PApplet {
                 color(0, 255, 255),
         };
 
-        int[] monopal = {
+        Integer[] monopal = {
                 color(0), color(255)
         }; //monochrome palette black and white
 
@@ -615,10 +656,12 @@ public class Main extends PApplet {
             palette = monopal;
         } else if (palsw == 4) {
             palette = ownpal;
-        } else {
+        } else if (palsw == 5) {
             palette = scalepal;
+        } else {
+            palette = altpal;
         }
-
+        //System.out.println(palsw);
 
         PVector[] vpalette = new PVector[palette.length];
         PVector vcolor = new PVector((in >> 16 & 0xFF), (in >> 8 & 0xFF), (in & 0xFF));
@@ -639,8 +682,9 @@ public class Main extends PApplet {
         return palette[current];
     }
 
-    public void collorcollector() { //extracts colors from original image at random, only takes new colors
+    public void collorcollector(int r, int t, int ranam) { //extracts colors from original image at random, only takes new colors
 
+        altpal = new Integer[ranam];
         int i = 0;
         if (palsw == 1) {
             altpal[0] = color(0);
@@ -648,39 +692,71 @@ public class Main extends PApplet {
         }
         int rx;
         int ry;
+        int c = 0;
 
+        rx = PApplet.parseInt(random(wij - 1));
+        ry = PApplet.parseInt(random(hoo - 1));
 
-        rx = PApplet.parseInt(random(src.width));
-        ry = PApplet.parseInt(random(src.height));
-
-        //println("beep3");
-
-        for (int x = rx; x < src.width; x++) {
-            for (int y = ry; y < src.height; y++) {
+        while (rx + r >= src.width || ry + t >= src.height) {
+            rx = PApplet.parseInt(random(wij - 1));
+            ry = PApplet.parseInt(random(hoo - 1));
+            c++;
+            if (c % 2000 == 0 && c != 0) {
+                //System.out.println("beephelp");
+                r = 0;
+                t = 0;
+            }
+        }
+        c = 0;
+        for (int x = rx + r; x < src.width; x++) {
+            for (int y = ry + t; y < src.height; y++) {
                 //i < altpal.length
-                if (!Arrays.asList(altpal).contains(color(src.get(x, y)))) {
+                int blahbab = color(src.get(x, y));
+                if (!Arrays.asList(altpal).contains(blahbab) && x < src.width && y < src.height) { //src.get(x,y) Arrays.stream(altpal).anyMatch(q -> altpal[q] == blahbab )
                     if (i == altpal.length) {
                         break;
                     }
-                    //println(x + " " + y);
+                    //println(src.get(x, y));
                     altpal[i] = color(src.get(x, y));
                     i++;
 
-                    x = PApplet.parseInt(random(src.width));
-                    y = PApplet.parseInt(random(src.height));
+                    x = r + PApplet.parseInt(random(wij - 1) / 2);
+                    y = t + PApplet.parseInt(random(hoo - 1) / 2);
+
+
+                    c = 0;
+                } else if (x >= src.width || y >= src.height) {
+                    x = r;
+                    y = t;
+                    //println("beepreset");
+                } else if (c > 400) {
+                    if (i == altpal.length) {
+                        break;
+                    }
+                    altpal[i] = color(0);
+                    c = 0;
+                    x = PApplet.parseInt(random(wij - 1));
+                    y = PApplet.parseInt(random(hoo - 1));
+                    i++;
+                    //println("beepevac" + (i - 1));
                 }
+                c++;
             }
         }
-        //println("beepend");
+        while (i < altpal.length) {
+            altpal[i] = color(0);
+            i++;
+        }
+
     }
 
     public void scaleCalculator() {
 
-        // orig impl // scalepal = new int[scaleam];
+        // orig impl // scalepal = new Integerscaleam];
 
         //new impl w/ multiple colors
 
-        scalepal = new int[scaleam*coloram];
+        scalepal = new Integer[scaleam * coloram];
         int k = 0;
 
         //end impl
@@ -721,8 +797,62 @@ public class Main extends PApplet {
         return result;
     }
 
+    public int extractColorFromImage(PImage img, int x, int y) {
+        colorMode(HSB);
+        img.loadPixels();
+        //int numberOfPixels = size*size;
+        int[] hues = new int[256];
+        float[] saturations = new float[256];
+        float[] brightnesses = new float[256];
+
+        for (int i = x - wij; i < x + wij * 2 && i < img.width; i++) {
+            for (int j = y - hoo; j < y + hoo * 2 && j < img.height; j++) {
+                int pixel = img.get(i, j);
+                int hue = Math.round(hue(pixel));
+                float saturation = saturation(pixel);
+                float brightness = brightness(pixel);
+                hues[hue]++;
+                saturations[hue] += saturation;
+                brightnesses[hue] += brightness;
+            }
+        }
+
+        // Find the most common hue.
+        int hueCount = hues[0];
+        int hue = 0;
+        for (int i = 1; i < hues.length; i++) {
+            if (hues[i] > hueCount) {
+                hueCount = hues[i];
+                hue = i;
+            }
+        }
+
+        // Set the vars for displaying the color.
+        return (color(hue, saturations[hue] / hueCount, brightnesses[hue] / hueCount));
+    }
+
+
+    public int getAverageColor(PImage img, int x, int y) {
+        img.loadPixels();
+        int r = 0, g = 0, b = 0, count = 1;
+        for (int i = x - wij; i < x + wij * 2 && i < img.width; i++) {
+            for (int j = y - hoo; j < y + hoo * 2 && j < img.height; j++) {
+                int c = img.get(i, j);
+                r += c >> 16 & 0xFF;
+                g += c >> 8 & 0xFF;
+                b += c & 0xFF;
+                count++;
+            }
+        }
+        r /= count;
+        g /= count;
+        b /= count;
+        return color(r, g, b);
+    }
+
+
     static public void main(String[] passedArgs) {
-        String[] appletArgs = new String[]{"sdziscode.ditheringGUI.Main"};
+        String[] appletArgs = new String[]{"sdziscode.dithering.Main"};
         if (passedArgs != null) {
             PApplet.main(concat(appletArgs, passedArgs));
         } else {
