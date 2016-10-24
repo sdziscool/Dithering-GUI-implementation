@@ -24,15 +24,25 @@ don't forget to select one or multiple files before pressing start!
 
 ##New Features
 
+0.7c
+
 +made standalone jar - [temp link] (http://sdziscool.polyphemus.feralhosting.com/Downloads/)
 
 with this the project will slowly move to a processing independant implementation for better performance.
 
 +main.java added for a start, now only requires you to import processing.
       
+0.7e
+      
 +the pde now also exports correctly so you can compile for yourself!
 
 +pde/jar is completely independant (no more use of start.jpg)
+
+0.7h
+
++boxes! Now, like in old games, you can have boxes that will be dithered individually using the limited amount of colors extracted from the box, new colorpalette for each block!
+
++added 2 extra methods to extract average color and hue for later use.
 
 ##TODO
 
