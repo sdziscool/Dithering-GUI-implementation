@@ -73,7 +73,6 @@ public class Main extends PApplet {
     int wij = 8;
     int hoo = 8;
 
-
 //GUI_start
 
     JRadioButton impl1, impl2, impl3, impl4, pal1, pal2, pal3, pal4, pal5, pal6, pal7, hc, sc, bc; //DONE
@@ -666,7 +665,7 @@ public class Main extends PApplet {
         PVector[] vpalette = new PVector[palette.length];
         PVector vcolor = new PVector((in >> 16 & 0xFF), (in >> 8 & 0xFF), (in & 0xFF));
         int current = 0;
-        float distance = vcolor.dist(new PVector(0, 0, 0));
+        float distance = 2000000000;  //vcolor.dist(new PVector(0, 0, 0)); <<complete bullshit
 
         for (int i = 0; i < palette.length; i++) {
             int r = (palette[i] >> 16 & 0xFF);
