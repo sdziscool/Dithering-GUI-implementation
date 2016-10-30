@@ -8,7 +8,10 @@ don't forget to select one or multiple files before pressing start!
 
 ## Features
 
--Ordered dithering, Floyd Steinberg Dithering, Random Dithering and Atkinson Dithering
+-Ordered, with 2x2, 3x3, 4x4 and 8x8 matrixes! Random, Floyd Steinberg, Atkinson
+
+And now also:
+Stucki, burkes, JJN, Sierra, Sierra-2, Sierra Lite!
 
 -random color selector, takes random colors from the image!
 
@@ -23,12 +26,14 @@ don't forget to select one or multiple files before pressing start!
 -color scales! scales your colors to create better results!
 
 ##New Features
+0.8
+
+-added general dithering matrix which enabled me to implement:
+stucki, burkes, JJN, Sierra, Sierra-2, Sierra Lite!
 
 0.7c
 
-+made standalone jar - [temp link] (http://sdziscool.polyphemus.feralhosting.com/Downloads/)
-
-with this the project will slowly move to a processing independant implementation for better performance.
+with this release the project will slowly move to a processing independant implementation for better performance.
 
 +main.java added for a start, now only requires you to import processing.
       
@@ -46,7 +51,7 @@ with this the project will slowly move to a processing independant implementatio
 
 ##TODO
 
--add more dithering algorithms
+-~~add more dithering algorithms~~ look into creating your own algorithms visually
 
 -give more info and feedback to the user(~~file selected or not?~~, image preview)
 
