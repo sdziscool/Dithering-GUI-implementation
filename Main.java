@@ -19,9 +19,9 @@ import java.util.Arrays;
 
 
 public class Main extends PApplet {
-    int algon = 2;
-    int div = 46; //divider
-    float[][][] dithmain = { // int[][][] dithmain = new int[5][5][16];
+    private int algon = 2;
+    private int div = 46; //divider
+    private float[][][] dithmain = { // int[][][] dithmain = new int[5][5][16];
             { //stucki 0 (div 16)
                     {0, 0, 0, 0, 0},
                     {0, 0, 0, 0, 0},
@@ -57,33 +57,39 @@ public class Main extends PApplet {
                     {0, 1, 1, 1, 0},
                     {0, 0, 1, 0, 0}
             },
-            { //Sierra (div 32)
+            { //Sierra 5 (div 32)
                     {0, 0, 0, 0, 0},
                     {0, 0, 0, 0, 0},
                     {0, 0, 0, 5, 3},
                     {2, 4, 5, 4, 2},
                     {0, 2, 3, 2, 0}
             },
-            { //Sierra 2 row (div 16)
+            { //Sierra 2 row 6 (div 16)
                     {0, 0, 0, 0, 0},
                     {0, 0, 0, 0, 0},
                     {0, 0, 0, 4, 3},
                     {1, 2, 3, 2, 1},
                     {0, 0, 0, 0, 0}
             },
-            { //Sierra Lite (div 4)
+            { //Sierra Lite 7 (div 4)
                     {0, 0, 0, 0, 0},
                     {0, 0, 0, 0, 0},
                     {0, 0, 0, 2, 0},
                     {0, 1, 1, 0, 0},
                     {0, 0, 0, 0, 0}
+            },
+            { //Custom / S-Dither 8 (div ???)
+                    {0, 0, 0, 0, 0},
+                    {0, 0, 0, 0, 0},
+                    {0, 0, 0, 1, 6},
+                    {3, 4, 3, 2, 5},
+                    {0, 1, 2, 3, 4}
             }
     };
 
-    PImage src;
-    PImage res;
-    int[][] matrix;
-    float scale;
+    private PImage src;
+    private PImage res;
+    private int[][] matrix;
 
     // Bayer matrix 8x8
     int[][] matrix3x3 = {
@@ -111,46 +117,24 @@ public class Main extends PApplet {
             {11, 59, 7, 55, 10, 58, 6, 54},
             {43, 27, 39, 23, 42, 26, 38, 22}
     };
-    int coln;
-    String impl = "ord"; //ord, atkin, floyd, ran
-    float mratio = 10 / 18.5f; //okay as is 1.0 / 18.5
-    float mfactor = 255.0f / 50; //okay as is 255.0 / 5
-    int coloram = 24; //IMPORTANT Amount of colors you want in your result
-    int palsw = 1; //paletteswitch, 0 is random, 1 is random+black, 2 is 3bit and anything else is b&w monochrome
-    int loops = 2; //amount of loops for randomcolor.
-    String image = "start.jpg"; //path to image
-    float endscale = 2; //scaling of image before processing, can be done without artefacting when using dithering
-    int s = 1; // steps, best left at 1
-    int msize = 8; //2,3,4,8 also defines matrix!, anything other than 2,3,4 and 8 results in msize = 4
-    Integer[] palette; //main palette, could later be implemented to be user defined
-    Integer[] altpal; //array containg all random colors
-    Integer[] ownpal;
-    Integer[] scalepal;
-    Integer[] dubpal;
-    float scalar = 4; //now working correctly, non aliased scaling, 3 results in pics with "square" of 3 pixels wide(aka pixelart in high resolution)
-    File[] selectedFile;
-    int imam;
-    int scaleam = 6;
-    int hsbSwitch = 0;
-    int wij = 8;
-    int hoo = 8;
+    private int coln, coloram = 24, palsw = 1, loops = 1, s = 1, msize = 8, imam, scaleam = 6, hsbSwitch = 0, wij = 8, hoo = 8;;
+    private float mratio = 10 / 18.5f, mfactor = 255.0f / 50, endscale = 2, scalar = 4, scale; //okay as is 1.0 / 18.5
+    private Integer[] palette, altpal, ownpal, scalepal; //main palette, could later be implemented to be user defined
+    private File[] selectedFile;
 
 //GUI_start
 
-    JRadioButton impl1, impl2, impl3, impl4, impl5, impl6, impl7, impl8, impl9, impl10, pal1, pal2, pal3, pal4, pal5, pal6, pal7, hc, sc, bc; //DONE
-    JTextField tmratio, tmfactor, tcoloram, tloops, tscalar, tsteps, tendscale, tmsize, towncol, tscales, twij, thoog;
-    JButton start, filebutton, owncolset;
-    JCheckBox adv, linestep; //done
+    private JRadioButton impl1, impl2, impl3, impl4, impl5, impl6, impl7, impl8, impl9, impl10, impl11, pal1, pal2, pal3, pal4, pal5, pal6, pal7, hc, sc, bc; //DONE
+    private JTextField tmratio, tmfactor, tcoloram, tloops, tscalar, tsteps, tendscale, tmsize, towncol, tscales, twij, thoog;
+    private JButton start, filebutton, owncolset;
+    private JCheckBox adv, linestep; //done
 
-    JTextArea info = new JTextArea("Please select one or multiple files to dither!");
-    JTextArea fileinfo = new JTextArea("no files selected yet");
-    JFrame frame;
-    JPanel panel1, panel2, panel3, panel4, panel5, panel6, panel7, subpanel1, subpanel2, subpanel3;
-    JLabel loopl, coloraml, scalarl, stepsl, mratl, mfactl, endscalel, linestepl, msizel, wijl, hool;
+    private JTextArea info = new JTextArea("Please select one or multiple files to dither!"), fileinfo = new JTextArea("no files selected yet");
+    private JFrame frame;
+    private JPanel panel1, panel2, panel3, panel4, panel5, panel6, panel7, subpanel1, subpanel2, subpanel3;
+    private JLabel loopl, coloraml, scalarl, stepsl, mratl, mfactl, endscalel, linestepl, msizel, wijl, hool;
 
-    JPanel[] c;
-    JPanel[] d;
-
+    private JPanel[] c;
     //GUI_end
     public void setup() {
         scale = 1 / scalar;
@@ -182,6 +166,7 @@ public class Main extends PApplet {
 
         public void buildit() {
             start = new JButton("Start");
+            impl11 = new JRadioButton("Custom");
             impl10 = new JRadioButton("Sierra Lite");
             impl9 = new JRadioButton("Sierra-2");
             impl8 = new JRadioButton("Sierra");
@@ -268,6 +253,7 @@ public class Main extends PApplet {
             modulo.add(impl8);
             modulo.add(impl9);
             modulo.add(impl10);
+            modulo.add(impl11);
 
             panel1.add(impl1);
             panel1.add(impl2);
@@ -279,7 +265,7 @@ public class Main extends PApplet {
             panel1.add(impl8);
             panel1.add(impl9);
             panel1.add(impl10);
-
+            panel1.add(impl11);
 
             pal1.addActionListener(this);
             pal2.addActionListener(this);
@@ -561,8 +547,20 @@ public class Main extends PApplet {
                 } else if(impl10.isSelected()){
                     div = 4;
                     algon = 7;
-                }
+                } else if(impl11.isSelected()){
+                    //div = (int)(mfactor/mratio);
+                    algon = 8;
+                    div = 0;
+                    for(int z = 0; z < 25; z++){
+                        div += dithmain[algon][z/5][z%5];
+                        println(div + " " + z);
+                    }
+                    println(div);
 
+                }
+                if(adv.isSelected()){
+                    div = (int)(mfactor/mratio);
+                }
 
 
 
